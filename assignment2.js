@@ -11,6 +11,8 @@ var _points = [];
 var _lines = [];
 var _lineStart = 0;
 var _lineEnd = 0;
+var _uColorLocation = null;
+var _lineColor = [];
 
 
 var cIndex = 0;
@@ -51,14 +53,8 @@ window.onload = function init() {
     var vPosition = _gl.getAttribLocation( program, "vPosition");
     _gl.vertexAttribPointer(vPosition, 2, _gl.FLOAT, false, 8, 0);
     _gl.enableVertexAttribArray(vPosition);
-
-    var cBuffer = _gl.createBuffer();
-    _gl.bindBuffer(_gl.ARRAY_BUFFER, cBuffer);
-    _gl.bufferData(_gl.ARRAY_BUFFER, 16*_maxNumVertices, _gl.STATIC_DRAW );
-
-    var vColor = _gl.getAttribLocation( program, "vColor");
-    _gl.vertexAttribPointer(vColor, 4, _gl.FLOAT, false, 0, 0);
-    _gl.enableVertexAttribArray(vColor);
+	
+	_uColorLocation = _gl.getUniformLocation(program, "uColor");
 
     var m = document.getElementById("mymenu");
 
@@ -78,10 +74,6 @@ window.onload = function init() {
 		_points.push(point);
 		
 		_gl.bufferSubData(_gl.ARRAY_BUFFER, 8*_index, flatten(point));
-		
-		var t = vec4(colors[cIndex]);
-		//_gl.bindBuffer(_gl.ARRAY_BUFFER, cBuffer);
-		_gl.bufferSubData(_gl.ARRAY_BUFFER, 16*_index, flatten(t));
 		
 		_lineStart = _index;
 		
@@ -107,13 +99,13 @@ window.onload = function init() {
 			_gl.bufferSubData(_gl.ARRAY_BUFFER, 8*_index, flatten(point));
 			
 			var t = vec4(colors[cIndex]);
-			//_gl.bindBuffer(_gl.ARRAY_BUFFER, cBuffer);
-			_gl.bufferSubData(_gl.ARRAY_BUFFER, 16*_index, flatten(t));
-			
+
 			_lineEnd = _index;
 			
 			var lineSegment = new vec2(_lineStart, _lineEnd);
 			_lines.push(lineSegment);
+			
+			_lineColor.push(t);
 			
 			_index++;
 			
@@ -133,6 +125,9 @@ function render() {
 	{
 		var segment = _lines[i];
 		
+		var t = _lineColor[i];
+		_gl.uniform4f(_uColorLocation, t[0], t[1], t[2], t[3], t[4]);
+
 		_gl.drawArrays(_gl.LINE_STRIP, segment[0]+1, (segment[1] - segment[0]));
 	}
 
